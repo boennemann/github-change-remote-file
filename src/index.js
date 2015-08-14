@@ -15,8 +15,6 @@ const gitdata = mapValues(github.gitdata, promisify)
 module.exports = async function (config, callback) {
   const {
     branch = 'master',
-    push,
-    pr,
     token,
     transform
   } = config
@@ -27,10 +25,18 @@ module.exports = async function (config, callback) {
     const content = await contentFromFilename(gitdata, config)
     const newContent = transform(content.content)
 
-    const commit = await updateFileWithContent(gitdata, defaults({
-      content: newContent,
-      sha: content.commit
-    }, config))
+    var transformedConfig = {}
+    if (typeof newContent === 'string') transformedConfig.content = newContent
+    else transformedConfig = newContent
+
+    config = defaults(transformedConfig, {sha: content.commit}, config)
+
+    const commit = await updateFileWithContent(gitdata, config)
+
+    const {
+      push,
+      pr
+    } = config
 
     if (!(pr || push)) return callback(null, commit)
 
