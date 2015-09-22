@@ -26,7 +26,6 @@ module.exports = async function (gitdata, config) {
     }))
 
     return Promise.resolve(commit)
-
   } catch (err) {
     return Promise.reject(err)
   }
