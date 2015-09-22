@@ -11,7 +11,6 @@ module.exports = async function contentFromFilename (repos, config) {
   const addRepo = defaultDefault(pick(config, ['user', 'repo']))
 
   try {
-
     const { content, sha } = await repos.getContent(addRepo({
       ref: branch,
       path: filename
