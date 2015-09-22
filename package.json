@@ -32,21 +32,21 @@
   },
   "homepage": "https://github.com/boennemann/github-change-remote-file#readme",
   "devDependencies": {
-    "babel": "^5.8.20",
-    "babel-eslint": "^4.0.5",
-    "coveralls": "^2.11.3",
-    "mkdirp": "^0.5.1",
-    "nock": "^2.9.1",
-    "nyc": "^3.1.0",
-    "rimraf": "^2.4.2",
-    "semantic-release": "^4.0.2",
-    "standard": "^5.3.1",
-    "tap": "^1.3.2"
+    "babel": "5.8.23",
+    "babel-eslint": "4.1.3",
+    "coveralls": "2.11.4",
+    "mkdirp": "0.5.1",
+    "nock": "2.12.0",
+    "nyc": "3.2.2",
+    "rimraf": "2.4.3",
+    "semantic-release": "4.3.5",
+    "standard": "5.3.1",
+    "tap": "1.4.1"
   },
   "dependencies": {
-    "babel-core": "^5.8.20",
-    "es6-promisify": "^3.0.0",
-    "github": "^0.2.4",
-    "lodash": "^3.10.0"
+    "babel-core": "5.8.25",
+    "es6-promisify": "3.0.0",
+    "github": "0.2.4",
+    "lodash": "3.10.1"
   }
 }
