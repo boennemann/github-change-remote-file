@@ -10,7 +10,7 @@ const updateFileWithContent = require('./update-file-with-content')
 var github = new GitHubApi({
   version: '3.0.0'
 })
-const gitdata = mapValues(github.gitdata, promisify)
+const repos = mapValues(github.repos, promisify)
 
 module.exports = async function (config, callback) {
   const {
@@ -22,37 +22,27 @@ module.exports = async function (config, callback) {
   try {
     github.authenticate({type: 'oauth', token})
 
-    const content = await contentFromFilename(gitdata, config)
-    const newContent = transform(content.content)
+    const { content, sha } = await contentFromFilename(repos, config)
+    const newContent = transform(content)
 
     var transformedConfig = {}
     if (typeof newContent === 'string') transformedConfig.content = newContent
     else transformedConfig = newContent
 
-    config = defaults(transformedConfig, {sha: content.commit}, config)
+    config = defaults(transformedConfig, {sha: sha}, config)
 
-    const commit = await updateFileWithContent(gitdata, config)
+    const update = await updateFileWithContent(repos, github, config)
 
     const {
       push,
       pr
     } = config
 
-    if (!(pr || push)) return callback(null, commit)
-
-    if (push) {
-      return github.gitdata.updateReference(
-        defaults({
-          ref: `heads/${branch}`,
-          sha: commit.sha
-        }, config),
-        callback
-      )
-    }
+    if (push || !pr) return callback(null, update)
 
     github.pullRequests.create(defaults(pr, config, {
       base: branch,
-      head: commit.sha
+      head: config.newBranch || update.commit.sha
     }), callback)
   } catch (err) {
     callback(err)

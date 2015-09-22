@@ -1,31 +1,35 @@
 const { pick } = require('lodash')
+const promisify = require('es6-promisify')
 
 const defaultDefault = require('./default-default')
 
-module.exports = async function (gitdata, config) {
-  const { content, filename, sha } = config
+module.exports = async function (repos, github, config) {
+  const { content, filename, sha, branch } = config
   const message = config.message || `chore: updated ${filename}`
 
   const addRepo = defaultDefault(pick(config, ['user', 'repo']))
 
   try {
-    const tree = await gitdata.createTree(addRepo({
-      base_tree: sha,
-      tree: [{
-        path: filename,
-        mode: '100644',
-        type: 'blob',
-        content
-      }]
-    }))
+    var newBranch = !config.push ? (config.newBranch || sha) : null
 
-    const commit = await gitdata.createCommit(addRepo({
+    if (newBranch) {
+      const head = await promisify(github.gitdata.getReference)(addRepo({ref: `heads/${branch}`}))
+
+      await promisify(github.gitdata.createReference)(addRepo({
+        sha: head.object.sha,
+        ref: `refs/heads/${newBranch}`
+      }))
+    }
+
+    const update = await repos.updateFile(addRepo({
+      path: filename,
       message,
-      tree: tree.sha,
-      parents: [sha]
+      content: new Buffer(content).toString('base64'),
+      sha,
+      branch: newBranch || branch
     }))
 
-    return Promise.resolve(commit)
+    return Promise.resolve(update)
   } catch (err) {
     return Promise.reject(err)
   }
