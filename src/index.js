@@ -7,11 +7,6 @@ const promisify = require('es6-promisify')
 const contentFromFilename = require('./content-from-filename')
 const updateFileWithContent = require('./update-file-with-content')
 
-var github = new GitHubApi({
-  version: '3.0.0'
-})
-const repos = mapValues(github.repos, promisify)
-
 module.exports = async function (config, callback) {
   const {
     branch = 'master',
@@ -20,8 +15,13 @@ module.exports = async function (config, callback) {
   } = config
 
   try {
+    const github = new GitHubApi({
+      version: '3.0.0'
+    })
+
     github.authenticate({type: 'oauth', token})
 
+    const repos = mapValues(github.repos, promisify)
     const { content, sha } = await contentFromFilename(repos, config)
     const newContent = transform(content)
 
