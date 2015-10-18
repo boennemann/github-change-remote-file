@@ -1,16 +1,11 @@
 require('babel-core/polyfill')
 
-const { defaults, mapValues } = require('lodash')
+const { defaults } = require('lodash')
 const GitHubApi = require('github')
 const promisify = require('es6-promisify')
 
 const contentFromFilename = require('./content-from-filename')
 const updateFileWithContent = require('./update-file-with-content')
-
-var github = new GitHubApi({
-  version: '3.0.0'
-})
-const gitdata = mapValues(github.gitdata, promisify)
 
 module.exports = async function (config, callback) {
   const {
@@ -20,10 +15,14 @@ module.exports = async function (config, callback) {
   } = config
 
   try {
+    const github = new GitHubApi({
+      version: '3.0.0'
+    })
+
     github.authenticate({type: 'oauth', token})
 
-    const content = await contentFromFilename(gitdata, config)
-    const newContent = transform(content.content)
+    const content = await contentFromFilename(github, config)
+    const newContent = transform(content)
 
     var transformedConfig = {}
     if (typeof newContent === 'string') transformedConfig.content = newContent
@@ -31,28 +30,38 @@ module.exports = async function (config, callback) {
 
     config = defaults(transformedConfig, {sha: content.commit}, config)
 
-    const commit = await updateFileWithContent(gitdata, config)
+    const commit = await updateFileWithContent(github, config)
 
     const {
       push,
-      pr
+      pr,
+      newBranch
     } = config
 
-    if (!(pr || push)) return callback(null, commit)
+    if (!(pr || push || newBranch)) return callback(null, commit)
 
     if (push) {
       return github.gitdata.updateReference(
         defaults({
-          ref: `heads/${branch}`,
+          ref: `refs/heads/${branch}`,
           sha: commit.sha
         }, config),
         callback
       )
     }
 
+    if (newBranch) {
+      await promisify(github.gitdata.createReference)(defaults({
+        sha: commit.sha,
+        ref: `refs/heads/${newBranch}`
+      }, config))
+    }
+
+    if (!pr) return callback(null, {commit})
+
     github.pullRequests.create(defaults(pr, config, {
       base: branch,
-      head: commit.sha
+      head: config.newBranch || commit.sha
     }), callback)
   } catch (err) {
     callback(err)
