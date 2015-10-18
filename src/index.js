@@ -22,7 +22,7 @@ module.exports = async function (config, callback) {
     github.authenticate({type: 'oauth', token})
 
     const content = await contentFromFilename(github, config)
-    const newContent = transform(content)
+    const newContent = transform(content.content)
 
     var transformedConfig = {}
     if (typeof newContent === 'string') transformedConfig.content = newContent
