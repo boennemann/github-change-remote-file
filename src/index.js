@@ -1,6 +1,6 @@
 require('babel-core/polyfill')
 
-const { defaults, mapValues } = require('lodash')
+const { defaults } = require('lodash')
 const GitHubApi = require('github')
 const promisify = require('es6-promisify')
 
@@ -21,28 +21,47 @@ module.exports = async function (config, callback) {
 
     github.authenticate({type: 'oauth', token})
 
-    const repos = mapValues(github.repos, promisify)
-    const { content, sha } = await contentFromFilename(repos, config)
+    const content = await contentFromFilename(github, config)
     const newContent = transform(content)
 
     var transformedConfig = {}
     if (typeof newContent === 'string') transformedConfig.content = newContent
     else transformedConfig = newContent
 
-    config = defaults(transformedConfig, {sha: sha}, config)
+    config = defaults(transformedConfig, {sha: content.commit}, config)
 
-    const update = await updateFileWithContent(repos, github, config)
+    const commit = await updateFileWithContent(github, config)
 
     const {
       push,
-      pr
+      pr,
+      newBranch
     } = config
 
-    if (push || !pr) return callback(null, update)
+    if (!(pr || push || newBranch)) return callback(null, commit)
+
+    if (push) {
+      return github.gitdata.updateReference(
+        defaults({
+          ref: `refs/heads/${branch}`,
+          sha: commit.sha
+        }, config),
+        callback
+      )
+    }
+
+    if (newBranch) {
+      await promisify(github.gitdata.createReference)(defaults({
+        sha: commit.sha,
+        ref: `refs/heads/${newBranch}`
+      }, config))
+    }
+
+    if (!pr) return callback(null, {commit})
 
     github.pullRequests.create(defaults(pr, config, {
       base: branch,
-      head: config.newBranch || update.commit.sha
+      head: config.newBranch || commit.sha
     }), callback)
   } catch (err) {
     callback(err)
