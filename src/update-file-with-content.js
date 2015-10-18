@@ -3,35 +3,32 @@ const promisify = require('es6-promisify')
 
 const defaultDefault = require('./default-default')
 
-module.exports = async function (repos, github, config) {
-  const { content, filename, sha, branch, author, comitter } = config
+module.exports = async function (github, config) {
+  const { content, filename, sha, author, comitter } = config
   const message = config.message || `chore: updated ${filename}`
 
   const addRepo = defaultDefault(pick(config, ['user', 'repo']))
 
   try {
-    var newBranch = !config.push ? (config.newBranch || sha) : null
+    const tree = await promisify(github.gitdata.createTree)(addRepo({
+      base_tree: sha,
+      tree: [{
+        path: filename,
+        mode: '100644',
+        type: 'blob',
+        content
+      }]
+    }))
 
-    if (newBranch) {
-      const head = await promisify(github.gitdata.getReference)(addRepo({ref: `heads/${branch}`}))
-
-      await promisify(github.gitdata.createReference)(addRepo({
-        sha: head.object.sha,
-        ref: `refs/heads/${newBranch}`
-      }))
-    }
-
-    const update = await repos.updateFile(addRepo({
-      path: filename,
+    const commit = await promisify(github.gitdata.createCommit)(addRepo({
       message,
-      content: new Buffer(content).toString('base64'),
-      sha,
-      branch: newBranch || branch,
+      tree: tree.sha,
+      parents: [sha],
       author,
       comitter
     }))
 
-    return Promise.resolve(update)
+    return Promise.resolve(commit)
   } catch (err) {
     return Promise.reject(err)
   }
