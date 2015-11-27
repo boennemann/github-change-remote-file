@@ -15,11 +15,15 @@ module.exports = async function (config, callback) {
   } = config
 
   try {
-    const github = new GitHubApi({
-      version: '3.0.0'
-    })
+    let github = config.github
 
-    github.authenticate({type: 'oauth', token})
+    if (!github) {
+      github = new GitHubApi({
+        version: '3.0.0'
+      })
+
+      github.authenticate({type: 'oauth', token})
+    }
 
     const content = await contentFromFilename(github, config)
     const newContent = transform(content.content)
