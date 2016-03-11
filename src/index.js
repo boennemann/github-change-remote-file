@@ -11,7 +11,8 @@ module.exports = async function (config, callback) {
   const {
     branch = 'master',
     token,
-    transform
+    transform,
+    force
   } = config
 
   try {
@@ -55,9 +56,10 @@ module.exports = async function (config, callback) {
     }
 
     if (newBranch) {
-      await promisify(github.gitdata.createReference)(defaults({
+      await promisify(github.gitdata[force ? 'updateReference' : 'createReference'])(defaults({
         sha: commit.sha,
-        ref: `refs/heads/${newBranch}`
+        ref: `refs/heads/${newBranch}`,
+        force
       }, config))
     }
 
