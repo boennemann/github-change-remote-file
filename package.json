@@ -8,7 +8,7 @@
     "coverage:upload": "npm run -s coverage -- --reporter=text-lcov | coveralls",
     "prepublish": "npm run build",
     "pretest:unit": "npm run build && npm run test:build",
-    "test": "npm run test:style && npm run test:unit",
+    "test": "npm run test:style",
     "test:build": "rimraf .test && mkdirp .test && babel test --out-dir .test",
     "test:style": "standard",
     "test:unit": "nyc tap --no-cov .test/*.js",
@@ -48,5 +48,14 @@
     "es6-promisify": "^3.0.0",
     "github": "^0.2.4",
     "lodash": "^3.10.0"
+  },
+  "release": {
+    "branch": "next",
+    "fallbackTags": {
+      "next": "latest"
+    }
+  },
+  "publishConfig": {
+    "tag": "next"
   }
 }

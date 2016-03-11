@@ -1,15 +1,16 @@
 const { pick } = require('lodash')
+const promisify = require('es6-promisify')
 
 const defaultDefault = require('./default-default')
 
-module.exports = async function (gitdata, config) {
-  const { content, filename, sha } = config
+module.exports = async function (github, config) {
+  const { content, filename, sha, author, comitter } = config
   const message = config.message || `chore: updated ${filename}`
 
   const addRepo = defaultDefault(pick(config, ['user', 'repo']))
 
   try {
-    const tree = await gitdata.createTree(addRepo({
+    const tree = await promisify(github.gitdata.createTree)(addRepo({
       base_tree: sha,
       tree: [{
         path: filename,
@@ -19,10 +20,12 @@ module.exports = async function (gitdata, config) {
       }]
     }))
 
-    const commit = await gitdata.createCommit(addRepo({
+    const commit = await promisify(github.gitdata.createCommit)(addRepo({
       message,
       tree: tree.sha,
-      parents: [sha]
+      parents: [sha],
+      author,
+      comitter
     }))
 
     return Promise.resolve(commit)

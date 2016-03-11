@@ -11,64 +11,33 @@ const branch = 'master'
 const filename = 'package.json'
 const pr_title = 'title'
 
-const heads_master_sha = 'abc'
 const file_sha = 'def'
 const tree_sha = 'ghi'
-const new_tree_sha = 'jkl'
 
 nock('https://api.github.com')
 
-.get(`/repos/${user}/${repo}/git/refs/heads%2F${branch}`)
+.get(`/repos/${user}/${repo}/contents/${filename}`)
 .times(4)
-.query({access_token})
-.reply(200, {
-  object: {
-    sha: heads_master_sha
-  }
+.query({
+  access_token,
+  ref: branch
 })
-
-.get(`/repos/${user}/${repo}/git/trees/${heads_master_sha}`)
-.times(4)
-.query({access_token})
-.reply(200, {
-  tree: [{
-    path: filename,
-    sha: file_sha
-  }]
-})
-
-.get(`/repos/${user}/${repo}/git/blobs/${file_sha}`)
-.times(4)
-.query({access_token})
 .reply(200, {
   content: 'YWJj',
-  encoding: 'base64'
+  sha: file_sha
 })
 
-.post(`/repos/${user}/${repo}/git/trees`, {
-  tree: [{
-    path: filename,
-    mode: '100644',
-    type: 'blob',
-    content: 'ABC'
-  }],
-  base_tree: heads_master_sha
-})
-.times(4)
-.query({access_token})
-.reply(201, {
-  sha: new_tree_sha
-})
-
-.post(`/repos/${user}/${repo}/git/commits`, {
+.put(`/repos/${user}/${repo}/contents/${filename}`, {
   message: `chore: updated ${filename}`,
-  tree: new_tree_sha,
-  parents: [heads_master_sha]
+  content: 'ABC',
+  sha: file_sha
 })
 .times(4)
 .query({access_token})
 .reply(201, {
-  sha: tree_sha
+  commit: {
+    sha: tree_sha
+  }
 })
 
 .post(`/repos/${user}/${repo}/pulls`, {
@@ -157,7 +126,6 @@ test('create commit and push to master (transform: object)', (t) => {
     token: access_token
   }, (err, res) => {
     t.error(err)
-    console.log(res)
     t.is(res.object.sha, tree_sha)
   })
 })
