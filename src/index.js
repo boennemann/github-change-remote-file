@@ -58,7 +58,7 @@ module.exports = async function (config, callback) {
     if (newBranch) {
       await promisify(github.gitdata[force ? 'updateReference' : 'createReference'])(defaults({
         sha: commit.sha,
-        ref: `refs/heads/${newBranch}`,
+        ref: (force ? '' : 'refs/') + 'heads/' + newBranch,
         force
       }, config))
     }
