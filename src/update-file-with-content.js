@@ -4,7 +4,7 @@ const promisify = require('es6-promisify')
 const defaultDefault = require('./default-default')
 
 module.exports = async function (github, config) {
-  const { content, filename, sha, author, comitter } = config
+  const { content, filename, sha, author, committer } = config
   const message = config.message || `chore: updated ${filename}`
 
   const addRepo = defaultDefault(pick(config, ['user', 'repo']))
@@ -25,7 +25,7 @@ module.exports = async function (github, config) {
       tree: tree.sha,
       parents: [sha],
       author,
-      comitter
+      committer
     }))
 
     return Promise.resolve(commit)
