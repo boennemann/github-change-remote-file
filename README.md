@@ -13,7 +13,7 @@ Create a new commit:
 githubChangeRemoteFile({
   user: 'boennemann',
   repo: 'animals',
-  filename: 'package.json'
+  filename: 'package.json',
   transform: function (pkg) {
     pkg = JSON.parse(pkg)
     pkg.devDependencies.standard = semver.inc(pkg.devDependencies.standard, 'major')
@@ -31,7 +31,7 @@ Create a new commit and send a PR:
 githubChangeRemoteFile({
   user: 'boennemann',
   repo: 'animals',
-  filename: 'package.json'
+  filename: 'package.json',
   transform: function (pkg) {
     pkg = JSON.parse(pkg)
     pkg.devDependencies.standard = semver.inc(pkg.devDependencies.standard, 'major')
