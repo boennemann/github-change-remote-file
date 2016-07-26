@@ -13,11 +13,11 @@ Create a new commit:
 githubChangeRemoteFile({
   user: 'boennemann',
   repo: 'animals',
-  filename: 'package.json'
+  filename: 'package.json',
   transform: function (pkg) {
     pkg = JSON.parse(pkg)
     pkg.devDependencies.standard = semver.inc(pkg.devDependencies.standard, 'major')
-    return JSON.stringify(pkg)
+    return JSON.stringify(pkg, null, 2)
   },
   token: '<github access token with sufficent rights>'
 }, function (err, res) {
@@ -31,11 +31,11 @@ Create a new commit and send a PR:
 githubChangeRemoteFile({
   user: 'boennemann',
   repo: 'animals',
-  filename: 'package.json'
+  filename: 'package.json',
   transform: function (pkg) {
     pkg = JSON.parse(pkg)
     pkg.devDependencies.standard = semver.inc(pkg.devDependencies.standard, 'major')
-    return JSON.stringify(pkg)
+    return JSON.stringify(pkg, null, 2)
   },
   token: '<github access token with sufficent rights>',
   pr: {
@@ -58,7 +58,7 @@ githubChangeRemoteFile({
   transform: function (pkg) {
     pkg = JSON.parse(pkg)
     pkg.devDependencies.standard = semver.inc(pkg.devDependencies.standard, 'major')
-    return JSON.stringify(pkg)
+    return JSON.stringify(pkg, null, 2)
   },
   token: '<github access token with sufficent rights>',
   push: true
