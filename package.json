@@ -7,11 +7,10 @@
     "coverage": "nyc report",
     "coverage:upload": "npm run -s coverage -- --reporter=text-lcov | coveralls",
     "prepublish": "npm run build",
-    "pretest:unit": "npm run build && npm run test:build",
-    "test": "npm run test:style",
-    "test:build": "rimraf .test && mkdirp .test && babel test --out-dir .test",
+    "pretest:unit": "npm run build",
+    "test": "npm run test:style && npm run test:unit",
     "test:style": "standard",
-    "test:unit": "nyc tap --no-cov .test/*.js",
+    "test:unit": "nyc tap --no-cov test/*.js",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "engines": {
