@@ -55,14 +55,5 @@
     "bluebird": "^3.4.1",
     "github": "^2.4.0",
     "lodash": "^4.14.2"
-  },
-  "release": {
-    "branch": "next",
-    "fallbackTags": {
-      "next": "latest"
-    }
-  },
-  "publishConfig": {
-    "tag": "next"
   }
 }
