@@ -7,44 +7,23 @@ This module allows you to change a single file in a repository on GitHub and cre
 
 ## Examples
 
-Create a new commit:
+Create a new branch and commit on top of it:
 
 ```js
 githubChangeRemoteFile({
   user: 'boennemann',
   repo: 'animals',
-  filename: 'package.json'
-  transform: function (pkg) {
-    pkg = JSON.parse(pkg)
-    pkg.devDependencies.standard = semver.inc(pkg.devDependencies.standard, 'major')
-    return JSON.stringify(pkg)
+  filename: 'package.json',
+  newBranch: 'upgrade-standard',
+  transform: pkg => {
+    const parsedPkg = JSON.parse(pkg)
+    pkg.devDependencies.standard = semver.inc(parsedPkg.devDependencies.standard, 'major')
+    return JSON.stringify(parsedPkg, null, 2)
   },
   token: '<github access token with sufficent rights>'
-}, function (err, res) {
-  console.log(res.sha) // sha of the new commit
 })
-```
-
-Create a new commit and send a PR:
-
-```js
-githubChangeRemoteFile({
-  user: 'boennemann',
-  repo: 'animals',
-  filename: 'package.json'
-  transform: function (pkg) {
-    pkg = JSON.parse(pkg)
-    pkg.devDependencies.standard = semver.inc(pkg.devDependencies.standard, 'major')
-    return JSON.stringify(pkg)
-  },
-  token: '<github access token with sufficent rights>',
-  pr: {
-    title: 'Updated standard to latest version',
-    body: 'whatever'
-  }
-}, function (err, res) {
-  console.log(res.html_url) // url of the pr
-})
+.then(res => console.log(res))
+.catch(console.log)
 ```
 
 Create a new commit and push it on top of the (master) branch:
@@ -54,15 +33,13 @@ githubChangeRemoteFile({
   user: 'boennemann',
   repo: 'animals',
   filename: 'package.json',
-  branch: 'master', // default
-  transform: function (pkg) {
-    pkg = JSON.parse(pkg)
-    pkg.devDependencies.standard = semver.inc(pkg.devDependencies.standard, 'major')
-    return JSON.stringify(pkg)
+  transform: pkg => {
+    const parsedPkg = JSON.parse(pkg)
+    pkg.devDependencies.standard = semver.inc(parsedPkg.devDependencies.standard, 'major')
+    return JSON.stringify(parsedPkg, null, 2)
   },
-  token: '<github access token with sufficent rights>',
-  push: true
-}, function (err, res) {
-  console.log(res.object.url) // url of the new commit
+  token: '<github access token with sufficent rights>'
 })
+.then(res => console.log(res))
+.catch(console.log)
 ```
