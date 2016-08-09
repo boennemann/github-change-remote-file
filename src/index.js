@@ -21,15 +21,17 @@ module.exports = async function (config) {
     github.authenticate({type: 'oauth', token})
   }
 
-  const reference = await promisify(github.gitdata.getReference)(defaults({
-    ref: `heads/${branch}`
-  }, config))
+  if (newBranch) {
+    const reference = await promisify(github.gitdata.getReference)(defaults({
+      ref: `heads/${branch}`
+    }, config))
 
-  await promisify(github.gitdata[force ? 'updateReference' : 'createReference'])(defaults({
-    sha: reference.object.sha,
-    ref: (force ? '' : 'refs/') + `heads/${newBranch}`,
-    force
-  }, config))
+    await promisify(github.gitdata[force ? 'updateReference' : 'createReference'])(defaults({
+      sha: reference.object.sha,
+      ref: (force ? '' : 'refs/') + `heads/${newBranch}`,
+      force
+    }, config))
+  }
 
   const content = await contentFromFilename(github, config)
   const newContent = transform(content.content)
@@ -38,7 +40,5 @@ module.exports = async function (config) {
   if (typeof newContent === 'string') transformedConfig.content = newContent
   else transformedConfig = newContent
 
-  const commit = await updateFileWithContent(github, defaults(transformedConfig, {sha: content.commit}, config))
-
-  return commit
+  return await updateFileWithContent(github, defaults(transformedConfig, {sha: content.commit, newBranch: newBranch || branch}, config))
 }
