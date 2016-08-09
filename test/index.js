@@ -5,59 +5,59 @@ const githubChangeRemoteFile = require('../')
 
 const user = 'jane'
 const repo = 'doe'
-const access_token = 'secret'
+const accessToken = 'secret'
 
 const branch = 'master'
 const filename = 'package.json'
-const pr_title = 'title'
+const prTitle = 'title'
 
-const file_sha = 'def'
-const tree_sha = 'ghi'
+const fileSha = 'def'
+const treeSha = 'ghi'
 
 nock('https://api.github.com')
 
 .get(`/repos/${user}/${repo}/contents/${filename}`)
 .times(4)
 .query({
-  access_token,
+  accessToken,
   ref: branch
 })
 .reply(200, {
   content: 'YWJj',
-  sha: file_sha
+  sha: fileSha
 })
 
 .put(`/repos/${user}/${repo}/contents/${filename}`, {
   message: `chore: updated ${filename}`,
   content: 'ABC',
-  sha: file_sha
+  sha: fileSha
 })
 .times(4)
-.query({access_token})
+.query({accessToken})
 .reply(201, {
   commit: {
-    sha: tree_sha
+    sha: treeSha
   }
 })
 
 .post(`/repos/${user}/${repo}/pulls`, {
-  title: pr_title,
+  title: prTitle,
   base: branch,
-  head: tree_sha
+  head: treeSha
 })
-.query({access_token})
+.query({accessToken})
 .reply(201, {
-  title: pr_title
+  title: prTitle
 })
 
 .patch(`/repos/${user}/${repo}/git/refs/heads%2F${branch}`, {
-  sha: tree_sha
+  sha: treeSha
 })
 .times(2)
-.query({access_token})
+.query({accessToken})
 .reply(201, {
   object: {
-    sha: tree_sha
+    sha: treeSha
   }
 })
 
@@ -69,10 +69,10 @@ test('create commit', (t) => {
     repo,
     filename,
     transform: (input) => input.toUpperCase(),
-    token: access_token
+    token: accessToken
   }, (err, res) => {
     t.error(err)
-    t.is(res.sha, tree_sha)
+    t.is(res.sha, treeSha)
   })
 })
 
@@ -84,13 +84,13 @@ test('create commit and send pr', (t) => {
     repo,
     filename,
     transform: (input) => input.toUpperCase(),
-    token: access_token,
+    token: accessToken,
     pr: {
-      title: pr_title
+      title: prTitle
     }
   }, (err, res) => {
     t.error(err)
-    t.is(res.title, pr_title)
+    t.is(res.title, prTitle)
   })
 })
 
@@ -102,11 +102,11 @@ test('create commit and push to master (transform: string)', (t) => {
     repo,
     filename,
     transform: (input) => input.toUpperCase(),
-    token: access_token,
+    token: accessToken,
     push: true
   }, (err, res) => {
     t.error(err)
-    t.is(res.object.sha, tree_sha)
+    t.is(res.object.sha, treeSha)
   })
 })
 
@@ -123,9 +123,9 @@ test('create commit and push to master (transform: object)', (t) => {
         push: true
       }
     },
-    token: access_token
+    token: accessToken
   }, (err, res) => {
     t.error(err)
-    t.is(res.object.sha, tree_sha)
+    t.is(res.object.sha, treeSha)
   })
 })
