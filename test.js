@@ -1,16 +1,21 @@
 var githubChangeRemoteFile = require('./')
 
 githubChangeRemoteFile({
-  user: 'boennemann',
-  repo: 'animals',
+  user: 'user',
+  repo: 'repo',
   filename: 'package.json',
   transform: function (pkg) {
-    return 'wat'
+    return 'test'
   },
-  token: 'c793b5969319e5e64e71703a337dd3f9eb7c0b3c',
-  message: ':wave: @boennemann',
-  newBranch: 'branch-name',
-  pr: {
-    title: 'testing, don\'t mind me'
+  token: '***',
+  message: ':banana: :zap: :apple:',
+  branch: 'test-branch',
+  newBranch: 'test-branch2',
+  force: true,
+  committer: {
+    name: 'greenkeeperio-bot',
+    email: 'support@greenkeeper.io'
   }
-}, console.log)
+})
+.then(console.log)
+.catch(console.log)
