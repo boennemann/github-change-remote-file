@@ -1,4 +1,4 @@
-const {defaults, pick} = require('lodash')
+const {defaults} = require('lodash')
 const {promisify} = require('bluebird')
 
 module.exports = async function contentFromFilename (github, config) {
@@ -10,7 +10,7 @@ module.exports = async function contentFromFilename (github, config) {
   const blob = await promisify(github.repos.getContent)(defaults({
     path: filename,
     ref: branch
-  }, pick(config, ['user', 'repo'])))
+  }, config))
 
   if (blob.type !== 'file') throw new Error('Type is not a file')
 
