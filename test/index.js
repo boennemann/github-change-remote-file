@@ -1,148 +1,119 @@
 const nock = require('nock')
-const { test } = require('tap')
+const {test} = require('tap')
 
 const githubChangeRemoteFile = require('../')
 
 const user = 'jane'
 const repo = 'doe'
-const access_token = 'secret'
+const accessToken = 'secret'
 
 const branch = 'master'
-const filename = 'package.json'
-const pr_title = 'title'
+const newBranch = 'test-branch'
 
-const heads_master_sha = 'abc'
-const file_sha = 'def'
-const tree_sha = 'ghi'
-const new_tree_sha = 'jkl'
+const filename = 'my/package.json'
+
+const branchSha = 'def'
+const fileSha = 'aec'
+const newFileSha = 'cea'
 
 nock('https://api.github.com')
-
 .get(`/repos/${user}/${repo}/git/refs/heads%2F${branch}`)
-.times(4)
-.query({access_token})
+.query({access_token: accessToken})
+.times(2)
 .reply(200, {
   object: {
-    sha: heads_master_sha
+    sha: branchSha
   }
 })
 
-.get(`/repos/${user}/${repo}/git/trees/${heads_master_sha}`)
-.times(4)
-.query({access_token})
-.reply(200, {
-  tree: [{
-    path: filename,
-    sha: file_sha
-  }]
+.post(`/repos/${user}/${repo}/git/refs`, {
+  ref: `refs/heads/${newBranch}`,
+  sha: branchSha
 })
+.query({access_token: accessToken})
+.times(1)
+.reply(201, {})
 
-.get(`/repos/${user}/${repo}/git/blobs/${file_sha}`)
+.patch(`/repos/${user}/${repo}/git/refs/heads%2F${newBranch}`, {
+  force: true,
+  sha: branchSha
+})
+.query({access_token: accessToken})
+.times(1)
+.reply(200, {})
+
+.get(`/repos/${user}/${repo}/contents/${filename.replace('/', '%2F')}`)
+.query({access_token: accessToken, ref: branch})
 .times(4)
-.query({access_token})
 .reply(200, {
   content: 'YWJj',
-  encoding: 'base64'
+  type: 'file',
+  sha: fileSha
 })
 
-.post(`/repos/${user}/${repo}/git/trees`, {
-  tree: [{
-    path: filename,
-    mode: '100644',
-    type: 'blob',
-    content: 'ABC'
-  }],
-  base_tree: heads_master_sha
-})
-.times(4)
-.query({access_token})
-.reply(201, {
-  sha: new_tree_sha
-})
-
-.post(`/repos/${user}/${repo}/git/commits`, {
+.put(`/repos/${user}/${repo}/contents/${filename.replace('/', '%2F')}`, {
   message: `chore: updated ${filename}`,
-  tree: new_tree_sha,
-  parents: [heads_master_sha]
+  content: 'QUJD',
+  sha: fileSha
 })
+.query({access_token: accessToken})
 .times(4)
-.query({access_token})
-.reply(201, {
-  sha: tree_sha
-})
-
-.post(`/repos/${user}/${repo}/pulls`, {
-  title: pr_title,
-  base: branch,
-  head: tree_sha
-})
-.query({access_token})
-.reply(201, {
-  title: pr_title
-})
-
-.patch(`/repos/${user}/${repo}/git/refs/heads%2F${branch}`, {
-  sha: tree_sha
-})
-.times(2)
-.query({access_token})
-.reply(201, {
-  object: {
-    sha: tree_sha
+.reply(200, {
+  commit: {
+    sha: newFileSha
   }
 })
 
-test('create commit', (t) => {
-  t.plan(2)
+test('create branch and commit', (t) => {
+  t.plan(1)
 
   githubChangeRemoteFile({
     user,
     repo,
     filename,
+    branch,
+    newBranch,
     transform: (input) => input.toUpperCase(),
-    token: access_token
-  }, (err, res) => {
-    t.error(err)
-    t.is(res.sha, tree_sha)
+    token: accessToken
   })
+  .then(res => t.is(res.sha, newFileSha))
+  .catch(t.threw)
 })
 
-test('create commit and send pr', (t) => {
-  t.plan(2)
+test('push commit to branch', (t) => {
+  t.plan(1)
 
   githubChangeRemoteFile({
     user,
     repo,
     filename,
+    branch,
     transform: (input) => input.toUpperCase(),
-    token: access_token,
-    pr: {
-      title: pr_title
-    }
-  }, (err, res) => {
-    t.error(err)
-    t.is(res.title, pr_title)
+    token: accessToken
   })
+  .then(res => t.is(res.sha, newFileSha))
+  .catch(t.threw)
 })
 
-test('create commit and push to master (transform: string)', (t) => {
-  t.plan(2)
+test('push commit to branch with force', (t) => {
+  t.plan(1)
 
   githubChangeRemoteFile({
     user,
     repo,
     filename,
+    branch,
+    newBranch,
+    force: true,
     transform: (input) => input.toUpperCase(),
-    token: access_token,
-    push: true
-  }, (err, res) => {
-    t.error(err)
-    t.is(res.object.sha, tree_sha)
+    token: accessToken
   })
+  .then(res => t.is(res.sha, newFileSha))
+  .catch(t.threw)
 })
 
 test('create commit and push to master (transform: object)', (t) => {
-  t.plan(2)
+  t.plan(1)
 
   githubChangeRemoteFile({
     user,
@@ -150,14 +121,11 @@ test('create commit and push to master (transform: object)', (t) => {
     filename,
     transform: (input) => {
       return {
-        content: input.toUpperCase(),
-        push: true
+        content: input.toUpperCase()
       }
     },
-    token: access_token
-  }, (err, res) => {
-    t.error(err)
-    console.log(res)
-    t.is(res.object.sha, tree_sha)
+    token: accessToken
   })
+  .then(res => t.is(res.sha, newFileSha))
+  .catch(t.threw)
 })
