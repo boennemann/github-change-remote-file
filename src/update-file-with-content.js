@@ -8,7 +8,7 @@ module.exports = async function (github, config) {
   const response = await promisify(github.repos.updateFile)(defaults({
     path: filename,
     message,
-    content: (new Buffer(content, 'utf8')).toString('base64'),
+    content: Buffer.from(content).toString('base64'),
     sha,
     branch: newBranch,
     committer: committer || author

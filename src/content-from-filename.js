@@ -15,7 +15,7 @@ module.exports = async function contentFromFilename (github, config) {
   if (blob.type !== 'file') throw new Error('Type is not a file')
 
   return {
-    content: (new Buffer(blob.content, 'base64')).toString(),
-    commit: blob.sha
+    content: Buffer.from(blob.content, 'base64').toString(),
+    commitSha: blob.sha
   }
 }

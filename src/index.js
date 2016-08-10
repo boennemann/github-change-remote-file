@@ -40,5 +40,5 @@ module.exports = async function (config) {
   if (typeof newContent === 'string') transformedConfig.content = newContent
   else transformedConfig = newContent
 
-  return await updateFileWithContent(github, defaults(transformedConfig, {sha: content.commit, newBranch: newBranch || branch}, config))
+  return await updateFileWithContent(github, defaults(transformedConfig, {sha: content.commitSha, newBranch: newBranch || branch}, config))
 }
