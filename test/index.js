@@ -19,7 +19,7 @@ const newFileSha = 'cea'
 nock('https://api.github.com')
 .get(`/repos/${user}/${repo}/git/refs/heads%2F${branch}`)
 .query({access_token: accessToken})
-.times(2)
+.times(3)
 .reply(200, {
   object: {
     sha: branchSha
@@ -44,7 +44,7 @@ nock('https://api.github.com')
 
 .get(`/repos/${user}/${repo}/contents/${filename.replace('/', '%2F')}`)
 .query({access_token: accessToken, ref: branch})
-.times(4)
+.times(5)
 .reply(200, {
   content: 'YWJj',
   type: 'file',
@@ -78,6 +78,22 @@ test('create branch and commit', (t) => {
   })
   .then(res => t.is(res.sha, newFileSha))
   .catch(t.threw)
+})
+
+test('not create branch and commit when there are no changes', (t) => {
+  t.plan(1)
+
+  githubChangeRemoteFile({
+    user,
+    repo,
+    filename,
+    branch,
+    newBranch,
+    transform: (input) => input,
+    token: accessToken
+  })
+  .then(res => t.fail())
+  .catch(err => t.pass())
 })
 
 test('push commit to branch', (t) => {

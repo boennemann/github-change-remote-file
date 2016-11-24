@@ -22,6 +22,7 @@ module.exports = async function (config) {
 
   const content = await contentFromFilename(github, config)
   const newContent = transform(content.content)
+  if (content.content === newContent) throw new Error('No changes to commit')
 
   var transformedConfig = {}
   if (typeof newContent === 'string') transformedConfig.content = newContent
