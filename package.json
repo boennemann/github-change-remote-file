@@ -40,20 +40,20 @@
   "homepage": "https://github.com/boennemann/github-change-remote-file#readme",
   "devDependencies": {
     "babel-cli": "^6.11.4",
-    "babel-eslint": "^6.1.2",
+    "babel-eslint": "^7.1.1",
     "babel-plugin-transform-async-to-generator": "^6.8.0",
     "coveralls": "^2.11.12",
     "mkdirp": "^0.5.1",
-    "nock": "^8.0.0",
-    "nyc": "^7.1.0",
+    "nock": "^9.0.6",
+    "nyc": "^10.1.2",
     "rimraf": "^2.5.4",
-    "semantic-release": "^4.3.5",
-    "standard": "^7.1.2",
-    "tap": "^6.3.0"
+    "semantic-release": "^6.3.2",
+    "standard": "^8.6.0",
+    "tap": "^10.1.1"
   },
   "dependencies": {
     "bluebird": "^3.4.1",
-    "github": "^2.4.0",
+    "github": "^8.2.1",
     "lodash": "^4.14.2"
   }
 }
